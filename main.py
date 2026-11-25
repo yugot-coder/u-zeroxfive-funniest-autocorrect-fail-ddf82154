@@ -1,37 +1,14 @@
-#!/usr/bin/env python3
-"""make.fun entry: Funniest Autocorrect Fail (one line, stdlib only)."""
-import hashlib
-import os
-import sys
-
-ENTRY = "Texted my mom: 'Can't talk, I'm in a meeting with Satan' \u2014 I meant SARAH, my manager. Mom screenshot it straight to Sarah."
-
-
-def main() -> int:
-    if not 1 <= len(ENTRY) <= 199:
-        raise SystemExit(f"entry length {len(ENTRY)} outside 1..199 gate")
-    data = (ENTRY + "\n").encode("utf-8")
-    expected = hashlib.sha256(data).hexdigest()
-    out_dir = "/output"
-    try:
-        os.makedirs(out_dir, exist_ok=True)
-        out_path = os.path.join(out_dir, "entry.txt")
-        with open(out_path, "wb") as fh:
-            fh.write(data)
-    except OSError:
-        out_dir = os.path.join(os.getcwd(), "output")
-        os.makedirs(out_dir, exist_ok=True)
-        out_path = os.path.join(out_dir, "entry.txt")
-        with open(out_path, "wb") as fh:
-            fh.write(data)
-    with open(out_path, "rb") as fh:
-        written = fh.read()
-    digest = hashlib.sha256(written).hexdigest()
-    if written != data or digest != expected:
-        raise SystemExit(f"read-back mismatch: wrote {expected}, read {digest}")
-    print(f"wrote {out_path} ({len(written)} bytes) sha256={digest}")
-    return 0
-
-
+import hashlib, pathlib
+TEXT = "I texted my boss 'I will definitely be there at 9' and autocorrect sent 'I will defiantly be there at 9' - HR wants a word."
+def main():
+    out = pathlib.Path("/output/entry.txt")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    data = TEXT.encode("utf-8")
+    out.write_bytes(data)
+    back = out.read_bytes()
+    if hashlib.sha256(back).hexdigest() != hashlib.sha256(data).hexdigest():
+        raise SystemExit("digest mismatch")
+    if not (1 <= len(back.decode("utf-8")) <= 199):
+        raise SystemExit("length out of gate")
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
